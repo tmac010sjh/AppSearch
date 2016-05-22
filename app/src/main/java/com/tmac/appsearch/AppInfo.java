@@ -2,36 +2,41 @@ package com.tmac.appsearch;
 
 import android.graphics.drawable.Drawable;
 
+import java.io.Serializable;
+
 /**
  * Created by T_MAC on 2016/5/15.
  */
-public class AppInfo {
+class AppInfo implements Serializable {
+
+    private static final long serialVersionUID = 201605221520L;
+
     private String appName;
     private Drawable appIcon;
     private String pkgName;
     private String pinyinIndex;
 
-    public String getPinyinIndex() {
+    String getPinyinIndex() {
         return pinyinIndex;
     }
 
-    public void setPinyinIndex(String pinyinIndex) {
+    void setPinyinIndex(String pinyinIndex) {
         this.pinyinIndex = pinyinIndex;
     }
 
-    public String getAppName() {
+    String getAppName() {
         return appName;
     }
 
-    public void setAppName(String appName) {
+    void setAppName(String appName) {
         this.appName = appName;
     }
 
-    public Drawable getAppIcon() {
+    Drawable getAppIcon() {
         return appIcon;
     }
 
-    public void setAppIcon(Drawable appIcon) {
+    void setAppIcon(Drawable appIcon) {
         this.appIcon = appIcon;
     }
 

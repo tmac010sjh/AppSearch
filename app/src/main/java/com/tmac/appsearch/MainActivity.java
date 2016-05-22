@@ -15,28 +15,20 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.gson.Gson;
+
 import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String CHINESE_REGEX = "^[\\u4E00-\\u9FA5\\uF900-\\uFA2D]+$";
-    private static final Pattern sChinesePattern = Pattern.compile(CHINESE_REGEX);
+    private static final String KEY = "key";
 
-    private static final HanyuPinyinOutputFormat sPinyinFormat = new HanyuPinyinOutputFormat();
-
-    static {
-        sPinyinFormat.setCaseType(HanyuPinyinCaseType.LOWERCASE);
-        sPinyinFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
-    }
+    private static final Gson GSON = new Gson();
 
     private static final String TAG = "MainActivity";
     private ListView mListView;
@@ -49,8 +41,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupListView();
-        new LoadAppListTask().execute();
         setupEditText();
+        initData();
+    }
+
+    private void initData() {
+        // TODO: 2016/5/22 add local cache
+        new LoadAppListTask().execute();
+//        String cache =
+//                getDefaultSharedPreferences(getApplicationContext())
+//                        .getString(KEY, "");
+//        Log.d(TAG, "initData: cache" + cache);
+//        if (TextUtils.isEmpty(cache)) {
+//        } else {
+//            List<AppInfo> appInfoList = GSON.fromJson(cache, new TypeToken<List<AppInfo>>() {
+//            }.getType());
+//            if (appInfoList == null) {
+//                new LoadAppListTask().execute();
+//            } else {
+//                mAdapter.updateData(appInfoList);
+//            }
+//        }
     }
 
     private void setupEditText() {
@@ -80,8 +91,29 @@ public class MainActivity extends AppCompatActivity {
                 mFilterList.clear();
 //                Pattern pattern = Pattern.compile(keyword);
                 for (AppInfo model : mResultListCache) {
-                    if (model.getPinyinIndex().contains(keyword)) {
+                    String index = model.getPinyinIndex();
+
+                    // TODO: 2016/5/22 使用regex完善
+                    if (index.contains(keyword)) {
                         mFilterList.add(model);
+                    } else {
+                        boolean containKey = false;
+                        //对输入的每一个字符进行查找
+                        for (int i = 0; i < keyword.length(); i++) {
+                            if (index.contains(keyword.substring(i, i + 1))) {
+                                containKey = true;
+                            } else {
+                                //主要有一个字符没有找到就跳过
+                                containKey = false;
+                                break;
+                            }
+                            //匹配过的字符跳过
+//                            index = index.substring()
+                        }
+                        if (containKey) {
+                            mFilterList.add(model);
+                        }
+
                     }
 //                        if (keyword.matches("^[a-zA-Z]*")) {
 //                            Matcher matcher = pattern.matcher(model.getPinyinIndex());
@@ -110,9 +142,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 AppInfo item = (AppInfo) mAdapter.getItem(position);
                 Intent intent = getPackageManager().getLaunchIntentForPackage(item.getPkgName());
-                if (intent != null) {
-                    startActivity(intent);
-                }
+                startActivity(intent);
+                finish();
             }
         });
     }
@@ -134,14 +165,14 @@ public class MainActivity extends AppCompatActivity {
                 appInfo.setAppName(appName);
                 appInfo.setAppIcon(icon);
 
-                Matcher matcher = sChinesePattern.matcher(appName);
+                Matcher matcher = PinyinUtils.sChinesePattern.matcher(appName);
                 if (matcher.find()) {
                     StringBuilder builder = new StringBuilder("");
                     for (int i = 0; i < appName.length(); i++) {
                         char c = appName.charAt(i);
 
                         try {
-                            String[] resultArray = PinyinHelper.toHanyuPinyinStringArray(c, sPinyinFormat);
+                            String[] resultArray = PinyinHelper.toHanyuPinyinStringArray(c, PinyinUtils.getPinyinFormat());
                             if (resultArray.length != 0) {
                                 for (String value : resultArray) {
                                     builder.append(value);
@@ -153,20 +184,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     appInfo.setPinyinIndex(builder.toString());
                 } else {
-                    appInfo.setPinyinIndex(appName);
+                    appInfo.setPinyinIndex(appName.toLowerCase());
                 }
                 Log.d(TAG, "setPinyinIndex: " + appInfo.getPinyinIndex());
                 appInfoList.add(appInfo);
             }
-            //就不排序了吧。。。。
-//            Collections.sort(appInfoList, new Comparator<AppInfo>() {
-//                @Override
-//                public int compare(AppInfo a, AppInfo b) {
-//                    return String
-//                            .CASE_INSENSITIVE_ORDER
-//                            .compare(a.getAppName(), b.appName);
-//                }
-//            });
             return appInfoList;
         }
 
@@ -174,6 +196,18 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<AppInfo> appInfoList) {
             mResultListCache = appInfoList;
             mAdapter.updateData(appInfoList);
+//            String cache = GSON.toJson(mResultListCache);
+//            Log.d(TAG, "onPostExecute: cache" + cache);
+//            PreferenceManager
+//                    .getDefaultSharedPreferences(getApplicationContext())
+//                    .edit()
+//                    .putString(KEY, cache)
+//                    .apply();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }
