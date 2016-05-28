@@ -1,5 +1,7 @@
 package com.tmac.appsearch;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +14,6 @@ import java.util.List;
 /**
  * Created by T_MAC on 2016/5/21.
  */
-
 public class AppListAdapter extends BaseAdapter {
     private List<AppInfo> mAppInfoList;
 
@@ -49,15 +50,13 @@ public class AppListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         AppInfo model = (AppInfo) getItem(position);
-        if (model.getAppIcon() != null) {
-            holder.appIcon.setImageDrawable(model.getAppIcon());
+        Bitmap bitmap = BitmapFactory.decodeByteArray(model.getIconByte(), 0, model.getIconByte().length);
+        if (bitmap != null) {
+            holder.appIcon.setImageBitmap(bitmap);
+//            bitmap.recycle();
         }
         holder.appName.setText(model.getAppName());
         return convertView;
-    }
-
-    public List<AppInfo> getAll() {
-        return mAppInfoList;
     }
 
     private static class ViewHolder {
@@ -69,5 +68,4 @@ public class AppListAdapter extends BaseAdapter {
             appIcon = (ImageView) view.findViewById(R.id.app_icon);
         }
     }
-
 }
