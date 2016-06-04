@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initView();
         createRealm();
-        loadDataFromRealm();
+        initData();
     }
 
     private void initView() {
@@ -54,13 +55,19 @@ public class MainActivity extends AppCompatActivity {
         setupEditText();
     }
 
-    private void loadDataFromRealm() {
+    private void initData() {
+        if (!loadFromDB()) {
+            refreshData();
+        }
+    }
+
+    private boolean loadFromDB() {
         mResultListCache = mRealm.where(AppInfo.class).findAll();
         if (!mResultListCache.isEmpty()) {
-            Log.d(TAG, "loadDataFromRealm: cache");
-            mAdapter.updateData(mResultListCache);
+            mAdapter.replaceData(mResultListCache);
+            return true;
         } else {
-            refreshData();
+            return false;
         }
     }
 
@@ -114,8 +121,7 @@ public class MainActivity extends AppCompatActivity {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                mResultListCache = mRealm.where(AppInfo.class).findAll();
-                mAdapter.updateData(mResultListCache);
+                loadFromDB();
                 Log.d(TAG, "onSuccess: transaction");
             }
         }, new Realm.Transaction.OnError() {
@@ -152,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
             }
             String keyword = s.toString();
             if (TextUtils.isEmpty(keyword)) {
-                mAdapter.updateData(mResultListCache);
+                mAdapter.replaceData(mResultListCache);
             } else {
                 mFilterList.clear();
 //                Pattern pattern = Pattern.compile(keyword);
@@ -192,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 //                        }
 //                    }
                 }
-                mAdapter.updateData(mFilterList);
+                mAdapter.replaceData(mFilterList);
             }
         }
     }
@@ -208,6 +214,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = getPackageManager().getLaunchIntentForPackage(item.getPkgName());
                 startActivity(intent);
                 finish();
+            }
+        });
+
+        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                boolean canLoad = scrollState != AbsListView.OnScrollListener.SCROLL_STATE_FLING;
+                mAdapter.setCanLoadBitmap(canLoad);
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
             }
         });
     }

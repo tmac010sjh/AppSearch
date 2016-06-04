@@ -17,7 +17,7 @@ import java.util.List;
 public class AppListAdapter extends BaseAdapter {
     private List<AppInfo> mAppInfoList;
 
-    public void updateData(List<AppInfo> appInfoList) {
+    public void replaceData(List<AppInfo> appInfoList) {
         mAppInfoList = appInfoList;
         notifyDataSetChanged();
     }
@@ -50,13 +50,21 @@ public class AppListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         AppInfo model = (AppInfo) getItem(position);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(model.getIconByte(), 0, model.getIconByte().length);
-        if (bitmap != null) {
-            holder.appIcon.setImageBitmap(bitmap);
+        if (canLoadBitmap) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(model.getIconByte(), 0, model.getIconByte().length);
+            if (bitmap != null) {
+                holder.appIcon.setImageBitmap(bitmap);
 //            bitmap.recycle();
+            }
         }
         holder.appName.setText(model.getAppName());
         return convertView;
+    }
+
+    private boolean canLoadBitmap = true;
+
+    public void setCanLoadBitmap(boolean canLoad) {
+        this.canLoadBitmap = canLoad;
     }
 
     private static class ViewHolder {
