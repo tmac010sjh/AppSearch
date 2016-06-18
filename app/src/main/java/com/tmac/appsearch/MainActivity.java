@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private RealmResults<AppInfo> mResultListCache;
     private Realm mRealm;
     private RealmAsyncTask mTransactionAsync;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +53,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        setupRefresh();
         setupListView();
         setupEditText();
+    }
+
+    private void setupRefresh() {
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshData();
+//                mSwipeRefreshLayout.setre;
+
+            }
+        });
     }
 
     private void initData() {
@@ -122,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 loadFromDB();
+                mSwipeRefreshLayout.setRefreshing(false);
                 Log.d(TAG, "onSuccess: transaction");
             }
         }, new Realm.Transaction.OnError() {

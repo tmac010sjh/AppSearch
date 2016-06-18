@@ -41,8 +41,7 @@ public class AppListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            convertView =
-                    LayoutInflater.from(parent.getContext())
+            convertView = LayoutInflater.from(parent.getContext())
                             .inflate(R.layout.item_app, null);
             holder = new ViewHolder(convertView);
             convertView.setTag(holder);
@@ -54,7 +53,6 @@ public class AppListAdapter extends BaseAdapter {
             Bitmap bitmap = BitmapFactory.decodeByteArray(model.getIconByte(), 0, model.getIconByte().length);
             if (bitmap != null) {
                 holder.appIcon.setImageBitmap(bitmap);
-//            bitmap.recycle();
             }
         }
         holder.appName.setText(model.getAppName());
