@@ -64,8 +64,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 refreshData();
-//                mSwipeRefreshLayout.setre;
-
             }
         });
     }
@@ -87,6 +85,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshData() {
+        deleteOldData();
+    }
+
+    private void loadLatestData() {
         mTransactionAsync = mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -108,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                     appInfo.setIconByte(stream.toByteArray());
 
-//                    appInfo.setAppIcon(icon);
                     Matcher matcher = PinyinUtils.sChinesePattern.matcher(appName);
                     if (matcher.find()) {
                         StringBuilder builder = new StringBuilder("");
@@ -144,6 +145,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(Throwable error) {
                 Log.d(TAG, "onError: transaction");
+            }
+        });
+    }
+
+    private void deleteOldData() {
+        mTransactionAsync = mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                loadLatestData();
             }
         });
     }
@@ -228,8 +243,10 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 AppInfo item = (AppInfo) mAdapter.getItem(position);
                 Intent intent = getPackageManager().getLaunchIntentForPackage(item.getPkgName());
-                startActivity(intent);
-                finish();
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
 

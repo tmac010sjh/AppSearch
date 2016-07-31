@@ -42,20 +42,21 @@ public class AppListAdapter extends BaseAdapter {
         ViewHolder holder;
         if (convertView == null) {
             convertView = LayoutInflater.from(parent.getContext())
-                            .inflate(R.layout.item_app, null);
+                    .inflate(R.layout.item_app, null);
             holder = new ViewHolder(convertView);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
         AppInfo model = (AppInfo) getItem(position);
-        if (canLoadBitmap) {
+        holder.appName.setText(model.getAppName());
+
+//        if (canLoadBitmap) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(model.getIconByte(), 0, model.getIconByte().length);
             if (bitmap != null) {
                 holder.appIcon.setImageBitmap(bitmap);
             }
-        }
-        holder.appName.setText(model.getAppName());
+//        }
         return convertView;
     }
 
